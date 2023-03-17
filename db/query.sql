@@ -1,3 +1,3 @@
 SELECT
 FROM 
-JOIN 
+JOIN ON . = . ;

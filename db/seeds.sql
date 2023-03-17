@@ -1,4 +1,4 @@
-INSERT INTO ()
+INSERT INTO department(names)
 VALUES ()
        ()
        () 
