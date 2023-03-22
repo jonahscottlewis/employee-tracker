@@ -23,6 +23,10 @@ const db = mysql.createConnection(
   console.log(`Connected to the employee_db.`)
 );
 
+function quit() {
+  Connection.end
+};
+
 const homeMenu = () => {
   return inquirer.prompt([
     {
@@ -42,7 +46,8 @@ const homeMenu = () => {
         // 'View employees by department',
         // 'Delete dapartments',
         // 'Delete roles',
-        // 'Delete employees'
+        // 'Delete employees',
+        'Quit'
       ]
     }
   ])
@@ -99,18 +104,40 @@ const homeMenu = () => {
         // case "Delete employees":
         //   deleteEmployee();
         //   break;
-
+        case "Exit":
+        quit();
+        break;
 
       }
     });
 };
 
 const viewDepartments = () => {
-  db.query(`SELECT * FROM department`, (err, results) => {
+  db.query(`SELECT * FROM department`, ( err, results) => {
     if (err) throw err;
     console.log("Departments:");
     console.table(results);
-    homeMenu();
+    inquirer.prompt([
+      {
+          type: 'list',
+          name: 'choice',
+          message: 'Make a selection',
+          choices: [
+              'Main Menu',
+              'Quit'
+          ],
+      }
+  ])
+  .then((answer) => {
+      switch (answer.choice) {
+          case 'Main Menu':
+              homeMenu();
+            break;
+            case 'Exit':
+                quit();
+      }
+    });
+    
   });
 };
 
@@ -119,7 +146,26 @@ const viewRoles = () => {
     if (err) throw err;
     console.log("Roles:");
     console.table(results);
-    homeMenu();
+    inquirer.prompt([
+      {
+          type: 'list',
+          name: 'choice',
+          message: 'Make a selection',
+          choices: [
+              'Main Menu',
+              'Quit'
+          ],
+      }
+  ])
+  .then((answer) => {
+      switch (answer.choice) {
+          case 'Main Menu':
+              homeMenu();
+            break;
+            case 'Exit':
+                quit();
+      }
+    });
   });
 };
 
@@ -128,7 +174,26 @@ const viewEmployees = () => {
     if (err) throw err;
     ("Employees:");
     console.table(results);
-    homeMenu();
+    inquirer.prompt([
+      {
+          type: 'list',
+          name: 'choice',
+          message: 'Make a selection',
+          choices: [
+              'Main Menu',
+              'Quit'
+          ],
+      }
+  ])
+  .then((answer) => {
+      switch (answer.choice) {
+          case 'Main Menu':
+              homeMenu();
+            break;
+            case 'Exit':
+                quit();
+      }
+    });
   });
 };
 
@@ -156,11 +221,49 @@ const addDepartment = () => {
 };
 
 const addRole = () => {
-  db.query(`UPDATE`)
+  return inquirer.prompt([{
+
+    type: 'input',
+    name: 'role',
+    message: 'Add new role name',
+    validate: newRole => {
+      if (newRole) {
+        return true;
+      } else {
+        console.log("Add new role name");
+        return false;
+      }
+    }
+  }]).then((answers) => {
+    db.query(`INSERT INTO role (name) VALUES (?)`, [answers.role], (err, results) => {
+      if (err) throw err;
+      console.log("Added to roles")
+      homeMenu();
+    });
+  })
 }
 
 const addEmployee = () => {
-  db.query(`UPDATE `)
+  return inquirer.prompt([{
+
+    type: 'input',
+    name: 'role',
+    message: 'Add new role name',
+    validate: newRole => {
+      if (newRole) {
+        return true;
+      } else {
+        console.log("Add new role name");
+        return false;
+      }
+    }
+  }]).then((answers) => {
+    db.query(`INSERT INTO role (name) VALUES (?)`, [answers.role], (err, results) => {
+      if (err) throw err;
+      console.log("Added to roles")
+      homeMenu();
+    });
+  })
 }
 
 const updateRole = () => {
@@ -191,75 +294,6 @@ const updateRole = () => {
 // const deleteEmployee = () => {
 //   db.query(`UPDATE`)
 // }
-
-
-
-
-
-
-// Delete a movie
-app.delete('/api/movie/:id', (req, res) => {
-  const sql = `DELETE FROM movies WHERE id = ?`;
-  const params = [req.params.id];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.statusMessage(400).json({ error: res.message });
-    } else if (!result.affectedRows) {
-      res.json({
-        message: 'Movie not found'
-      });
-    } else {
-      res.json({
-        message: 'deleted',
-        changes: result.affectedRows,
-        id: req.params.id
-      });
-    }
-  });
-});
-
-// Read list of all reviews and associated movie name using LEFT JOIN
-app.get('/api/movie-reviews', (req, res) => {
-  const sql = `SELECT movies.movie_name AS movie, reviews.review FROM reviews LEFT JOIN movies ON reviews.movie_id = movies.id ORDER BY movies.movie_name;`;
-  db.query(sql, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: 'success',
-      data: rows
-    });
-  });
-});
-
-// BONUS: Update review name
-app.put('/api/review/:id', (req, res) => {
-  const sql = `UPDATE reviews SET review = ? WHERE id = ?`;
-  const params = [req.body.review, req.params.id];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-    } else if (!result.affectedRows) {
-      res.json({
-        message: 'Movie not found'
-      });
-    } else {
-      res.json({
-        message: 'success',
-        data: req.body,
-        changes: result.affectedRows
-      });
-    }
-  });
-});
-
-// Default response for any other request (Not Found)
-app.use((req, res) => {
-  res.status(404).end();
-});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
