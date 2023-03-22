@@ -46,69 +46,69 @@ const homeMenu = () => {
       ]
     }
   ])
-  .then((answer) => {
-    switch (answer.homeMenu) {
-      case "View all departments":
-        viewDepartments();
-        break;
+    .then((answer) => {
+      switch (answer.homeMenu) {
+        case "View all departments":
+          viewDepartments();
+          break;
 
-      case "View all roles":
-        viewRoles();
-        break;
+        case "View all roles":
+          viewRoles();
+          break;
 
-      case "View all employees":
-        viewEmployees();
-        break;  
+        case "View all employees":
+          viewEmployees();
+          break;
 
-      case "Add a department":
-        addDepartment();
-        break;
-      
-      case "Add a role":
-        addRole();
-        break;
-        
-      case "Add an employee":
-        addEmployee();
-        break;
-        
-      case "Update employee role":
-        updateRole();
-        break;
-        
-      // case "Update employee managers":
-      //   updateManager();
-      //   break;
+        case "Add a department":
+          addDepartment();
+          break;
 
-      // case "View employee by manager":
-      //   viewByManager();
-      //   break;
+        case "Add a role":
+          addRole();
+          break;
 
-      // case "View employees by department":
-      //   viewByDepartment();
-      //   break;
+        case "Add an employee":
+          addEmployee();
+          break;
 
-      // case "Delete dapartments":
-      //   deleteDepartment();
-      //   break;
+        case "Update employee role":
+          updateRole();
+          break;
 
-      // case "Delete roles":
-      //   deleteRoles();
-      //   break;
+        // case "Update employee managers":
+        //   updateManager();
+        //   break;
 
-      // case "Delete employees":
-      //   deleteEmployee();
-      //   break;
+        // case "View employee by manager":
+        //   viewByManager();
+        //   break;
+
+        // case "View employees by department":
+        //   viewByDepartment();
+        //   break;
+
+        // case "Delete dapartments":
+        //   deleteDepartment();
+        //   break;
+
+        // case "Delete roles":
+        //   deleteRoles();
+        //   break;
+
+        // case "Delete employees":
+        //   deleteEmployee();
+        //   break;
 
 
-    }
-  })
-}
+      }
+    });
+};
 
 const viewDepartments = () => {
   db.query(`SELECT * FROM department`, (err, results) => {
-    if(err) throw err;
-
+    if (err) throw err;
+    console.log("Departments:");
     console.table(results);
     homeMenu();
   });
@@ -116,8 +116,8 @@ const viewDepartments = () => {
 
 const viewRoles = () => {
   db.query(`SELECT * FROM role`, (err, results) => {
-    if(err) throw err;
-
+    if (err) throw err;
+    console.log("Roles:");
     console.table(results);
     homeMenu();
   });
@@ -125,16 +125,35 @@ const viewRoles = () => {
 
 const viewEmployees = () => {
   db.query(`SELECT * FROM employee`, (err, results) => {
-    if(err) throw err;
-
+    if (err) throw err;
+    ("Employees:");
     console.table(results);
     homeMenu();
   });
 };
 
 const addDepartment = () => {
-  db.query(`UPDATE`)
-}
+  return inquirer.prompt([{
+
+    type: 'input',
+    name: 'department',
+    message: 'Add new department name',
+    validate: newDepartment => {
+      if (newDepartment) {
+        return true;
+      } else {
+        console.log("Add new department name");
+        return false;
+      }
+    }
+  }]).then((answers) => {
+    db.query(`INSERT INTO department (name) VALUES (?)`, [answers.department], (err, results) => {
+      if (err) throw err;
+      console.log("Added to departments")
+      homeMenu();
+    });
+  })
+};
 
 const addRole = () => {
   db.query(`UPDATE`)
@@ -145,7 +164,7 @@ const addEmployee = () => {
 }
 
 const updateRole = () => {
-  db.query(`UPDATE`) 
+  db.query(`UPDATE`)
 }
 
 // const updateManager = () => {
