@@ -156,13 +156,16 @@ const addDepartment = () => {
         console.log("Add new department name");
         return false;
       }
-    }
-  }]).then((answers) => {
-    db.query(`INSERT INTO department (name) VALUES (?)`, 
-    [answers.department], (err, results) => {
+    },
+  },
+]).then(({ department }) => {
+    db.query(`INSERT INTO department(department_name) VALUES(?)`, 
+    department,
+     function (err, results) {
       if (err) throw err;
-      console.log("Added to departments")
-      homeMenu();
+      console.log(results);
+      console.log("Department added")
+      viewDepartments();
     });
   })
 };
@@ -173,56 +176,70 @@ const addRole = () => {
 
       type: 'input',
       name: 'title',
-      message: 'Add new role title'
-    },
-    {
-      type: 'input',
-      name: 'department_name',
-      message: 'Add department name of the new role'
+      message: 'Add new role title',
+      validate: newTitle => {
+        if (newTitle) {
+          return true;
+        } else {
+          return false;
+        }
+      }
     },
     {
       type: 'input',
       name: 'salary',
       message: 'Add the salary of the role as an integer',
-      validate: newRole => {
-        if (newRole) {
+      validate: newSalary => {
+        if (newSalary) {
           return true;
         } else {
-          console.log("Add new role name");
+
           return false;
         }
       }
-    }]).then(({ title, department_name, salary }) => {
-      const newRole = [title, department_name, salary];
-      db.query(`INSERT INTO role(title, department_name, salary) VALUES (?,?,?)`,
-        newRole,
-        (err, results) => {
-          if (err) throw err;
-          console.log(results);
-          console.log('Employee added');
-          inquirer.prompt([
-            {
-              type: 'list',
-              name: 'choice',
-              message: 'Make a selection',
-              choices: [
-                'Main Menu',
-                'Quit'
-              ],
-            }
-          ])
-            .then((answer) => {
-              switch (answer.choice) {
-                case 'Main Menu':
-                  homeMenu();
-                  break;
-                case 'Exit':
-                  quit();
-              }
-            });
+    },
+    // Create new role with input
+  ]).then(({ title, salary }) => {
+    const newRole = [title, salary];
 
+    const departments = [];
+
+    db.query(`SELECT * FROM department`, (err, results) => {
+      results.forEach(({ department_name, id }) => {
+        departments.push({
+          name: department_name,
+          value: id
         })
+      });
+
+      inquirer
+        .prompt([
+          {
+            type: 'list',
+            name: 'department',
+            message: 'Assign the role to a department',
+            choices: departments
+
+          },
+
+        ]).then(({ department }) => {
+          //add input to newly createded role (newRole)
+          newRole.push(department);
+          //Insert newly created role into db
+          db.query(`INSERT INTO role(title, salary, department_id) VALUES (?,?,?)`,
+            newRole,
+            (err, results) => {
+              if (err) throw err;
+              console.table(results);
+              console.log('Role added');
+              viewRoles();
+            })
+        })
+
+
+
     })
+  })
 }
 
 const addEmployee = () => {
@@ -267,7 +284,7 @@ const addEmployee = () => {
           value: id
         });
       });
-      inquirer.promt([
+      inquirer.prompt([
         {
           type: 'list',
           name: 'role',
@@ -306,28 +323,9 @@ const addEmployee = () => {
               newEmployee,
               (err, results) => {
                 if (err) throw err;
-                console.log(results);
+                console.table(results);
                 console.log('Employee added');
-                inquirer.prompt([
-                  {
-                    type: 'list',
-                    name: 'choice',
-                    message: 'Make a selection',
-                    choices: [
-                      'Main Menu',
-                      'Quit'
-                    ],
-                  }
-                ])
-                  .then((answer) => {
-                    switch (answer.choice) {
-                      case 'Main Menu':
-                        homeMenu();
-                        break;
-                      case 'Exit':
-                        quit();
-                    }
-                  });
+                homeMenu();
               })
           })
 
@@ -345,27 +343,7 @@ const updateEmployeeRole = () => {
     console.table(results);
 
 
-
-    inquirer.prompt([
-      {
-        type: 'list',
-        name: 'choice',
-        message: 'Make a selection',
-        choices: [
-          'Main Menu',
-          'Quit'
-        ],
-      }
-    ])
-      .then((answer) => {
-        switch (answer.choice) {
-          case 'Main Menu':
-            homeMenu();
-            break;
-          case 'Exit':
-            quit();
-        }
-      });
+    homeMenu();
   });
 };
 
