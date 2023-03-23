@@ -1,6 +1,7 @@
-const inquirer = require("inquirer");
 const express = require('express');
+const inquirer = require("inquirer");
 const mysql = require("mysql2");
+// const db = require('./server');
 const consoleTables = require("console.table");
 
 const PORT = process.env.PORT || 3001;
@@ -8,9 +9,8 @@ const app = express();
 
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+// app.use(express.join());
 
-// Connect to database
 const db = mysql.createConnection(
   {
     host: 'localhost',
@@ -20,12 +20,13 @@ const db = mysql.createConnection(
     password: 'root',
     database: 'employee_db'
   },
-  console.log(`Connected to the employee_db.`)
+  
 );
 
-function quit() {
-  Connection.end
-};
+db.connect(function () {
+  console.log(`Connected to the employee_db.`);
+  homeMenu();
+});
 
 const homeMenu = () => {
   return inquirer.prompt([
@@ -52,7 +53,7 @@ const homeMenu = () => {
     }
   ])
     .then((answer) => {
-      switch (answer.homeMenu) {
+      switch (answer.menu) {
         case "View all departments":
           viewDepartments();
           break;
@@ -78,7 +79,7 @@ const homeMenu = () => {
           break;
 
         case "Update employee role":
-          updateRole();
+          updateEmployeeRole();
           break;
 
         // case "Update employee managers":
@@ -118,56 +119,19 @@ const viewDepartments = () => {
     if (err) throw err;
     console.log("Departments:");
     console.table(results);
-    inquirer.prompt([
-      {
-        type: 'list',
-        name: 'choice',
-        message: 'Make a selection',
-        choices: [
-          'Main Menu',
-          'Quit'
-        ],
-      }
-    ])
-      .then((answer) => {
-        switch (answer.choice) {
-          case 'Main Menu':
-            homeMenu();
-            break;
-          case 'Exit':
-            quit();
-        }
-      });
+    homeMenu();
 
   });
 };
+
 
 const viewRoles = () => {
   db.query(`SELECT * FROM role`, (err, results) => {
     if (err) throw err;
     console.log("Roles:");
     console.table(results);
-    inquirer.prompt([
-      {
-        type: 'list',
-        name: 'choice',
-        message: 'Make a selection',
-        choices: [
-          'Main Menu',
-          'Quit'
-        ],
-      }
-    ])
-      .then((answer) => {
-        switch (answer.choice) {
-          case 'Main Menu':
-            homeMenu();
-            break;
-          case 'Exit':
-            quit();
-        }
+    homeMenu();
       });
-  });
 };
 
 const viewEmployees = () => {
@@ -175,26 +139,7 @@ const viewEmployees = () => {
     if (err) throw err;
     console.log("Employees:");
     console.table(results);
-    inquirer.prompt([
-      {
-        type: 'list',
-        name: 'choice',
-        message: 'Make a selection',
-        choices: [
-          'Main Menu',
-          'Quit'
-        ],
-      }
-    ])
-      .then((answer) => {
-        switch (answer.choice) {
-          case 'Main Menu':
-            homeMenu();
-            break;
-          case 'Exit':
-            quit();
-        }
-      });
+    homeMenu();
   });
 };
 
@@ -223,39 +168,62 @@ const addDepartment = () => {
 };
 
 const addRole = () => {
-  return inquirer.prompt([{
-  {
+  return inquirer.prompt([
+    {
 
-    type: 'input',
-    name: 'title',
-    message: 'Add new role title'
-  },
-  {
-    type: 'input',
-    name: 'department_id',
-    message: 'Add department ID of the new role'
-  },
-  {
-  }
-    validate: newRole => {
-      if (newRole) {
-        return true;
-      } else {
-        console.log("Add new role name");
-        return false;
+      type: 'input',
+      name: 'title',
+      message: 'Add new role title'
+    },
+    {
+      type: 'input',
+      name: 'department_name',
+      message: 'Add department name of the new role'
+    },
+    {
+      type: 'input',
+      name: 'salary',
+      message: 'Add the salary of the role as an integer',
+      validate: newRole => {
+        if (newRole) {
+          return true;
+        } else {
+          console.log("Add new role name");
+          return false;
+        }
       }
-    }
-  }]).then((answers) => {
-    db.query(`INSERT INTO role(id, title, department_id, salary) VALUES (?,?,?,?)`, 
-    [answers.role], (err, results) => {
-      if (err) throw err;
-      console.log("Added to roles")
-      homeMenu();
-    });
-  })
+    }]).then(({ title, department_name, salary }) => {
+      const newRole = [title, department_name, salary];
+      db.query(`INSERT INTO role(title, department_name, salary) VALUES (?,?,?)`,
+        newRole,
+        (err, results) => {
+          if (err) throw err;
+          console.log(results);
+          console.log('Employee added');
+          inquirer.prompt([
+            {
+              type: 'list',
+              name: 'choice',
+              message: 'Make a selection',
+              choices: [
+                'Main Menu',
+                'Quit'
+              ],
+            }
+          ])
+            .then((answer) => {
+              switch (answer.choice) {
+                case 'Main Menu':
+                  homeMenu();
+                  break;
+                case 'Exit':
+                  quit();
+              }
+            });
+
+        })
+    })
 }
-
-
 
 const addEmployee = () => {
   return inquirer.prompt([
@@ -310,7 +278,7 @@ const addEmployee = () => {
         newEmployee.push(role);
         console.log(newEmployee);
 
-        db.query(`SELECT # FROM EMPLOYEE`, (err, results) => {
+        db.query(`SELECT * FROM EMPLOYEE`, (err, results) => {
           if (err) throw err;
           const managers = [
             {
@@ -370,9 +338,37 @@ const addEmployee = () => {
   })
 }
 
-const updateRole = () => {
-  db.query(`UPDATE`)
-}
+const updateEmployeeRole = () => {
+  db.query(`SELECT * FROM employee`, (err, results) => {
+    if (err) throw err;
+    console.log("Employees:");
+    console.table(results);
+
+
+
+    inquirer.prompt([
+      {
+        type: 'list',
+        name: 'choice',
+        message: 'Make a selection',
+        choices: [
+          'Main Menu',
+          'Quit'
+        ],
+      }
+    ])
+      .then((answer) => {
+        switch (answer.choice) {
+          case 'Main Menu':
+            homeMenu();
+            break;
+          case 'Exit':
+            quit();
+        }
+      });
+  });
+};
+
 
 // const updateManager = () => {
 //   db.query(`UPDATE`)
@@ -399,6 +395,6 @@ const updateRole = () => {
 //   db.query(`UPDATE`)
 // }
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+function quit() {
+  Connection.end
+};
