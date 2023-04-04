@@ -4,6 +4,10 @@ const mysql = require("mysql2");
 // const db = require('./server');
 const consoleTables = require("console.table");
 
+var allManagers = [];
+var allRoles = [];
+var allEmployees = [];
+
 const PORT = process.env.PORT || 3001;
 const app = express();
 
@@ -28,7 +32,65 @@ db.connect(function () {
   homeMenu();
 });
 
+const getAllManagers = () => {
+  db.query(`SELECT manager, manager_id FROM managers`, (err, res) => {
+    if (err) throw err;
+    allManagers = [];
+    for (let i=0; i < res.length; i++) {
+      const manager = res[i].manager;
+      const manager_id = res[i].manager_id;
+      var newManager = {
+        name: manager,
+        value: manager_id
+      }
+      allManagers.push(newManager);
+    }
+    return allManagers;
+  });
+};
+
+const getAllRoles = () => {
+  db.query(`SELECT title, role_id FROM roles`, (err, res) => {
+    if (err) throw err;
+    allRoles = [];
+    for(let i=0; i < res.length; i++) {
+      const role = res[i].role;
+      const role_id = res[i].role_id;
+      var newRole = {
+        name: role,
+        value: role_id
+      }
+      allRoles.push(newRole);
+    }
+    return allRoles;
+  });
+};
+
+const getAllEmployees = () => {
+  db.query(`SELECT first_name, last_name, if FROM employee`, (err, res) => {
+    if (err) throw err;
+    allEmployees = [];
+    for (let i =0; i < res.length; i++) {
+      const id = res[i].id;
+      const firstName = res[i].first_name;
+      const lastNAme = res[i].last_name;
+      var newEmployee = {
+        name: firstName.contact(" ", lastName),
+        value: id
+      }
+      addEmployee.push(newEmployee);
+    }
+    return allEmployees;
+  })
+}
+
+
 const homeMenu = () => {
+
+  getAllManagers();
+  getAllRoles();
+  getAllEmployees();
+
   return inquirer.prompt([
     {
       name: 'menu',
@@ -45,14 +107,14 @@ const homeMenu = () => {
         // 'Update employee managers',
         // 'View employee by manager'
         // 'View employees by department',
-        // 'Delete dapartments',
-        // 'Delete roles',
-        // 'Delete employees',
-        'Quit'
+        'Delete dapartments',
+        'Delete roles',
+        'Delete employees'
+        // 'Exit'
       ]
     }
   ])
-    .then((answer) => {
+    .then(answer => {
       switch (answer.menu) {
         case "View all departments":
           viewDepartments();
@@ -94,21 +156,21 @@ const homeMenu = () => {
         //   viewByDepartment();
         //   break;
 
-        // case "Delete dapartments":
-        //   deleteDepartment();
-        //   break;
-
-        // case "Delete roles":
-        //   deleteRoles();
-        //   break;
-
-        // case "Delete employees":
-        //   deleteEmployee();
-        //   break;
-
-        case "Exit":
-          quit();
+        case "Delete dapartments":
+          deleteDepartment();
           break;
+
+        case "Delete roles":
+          deleteRole();
+          break;
+
+        case "Delete employees":
+          deleteEmployee();
+          break;
+
+        // case "Exit":
+        //   quit();
+        //   break;
 
       }
     });
@@ -117,7 +179,7 @@ const homeMenu = () => {
 const viewDepartments = () => {
   db.query(`SELECT * FROM department`, (err, results) => {
     if (err) throw err;
-    console.log("Departments:");
+   
     console.table(results);
     homeMenu();
 
@@ -128,7 +190,7 @@ const viewDepartments = () => {
 const viewRoles = () => {
   db.query(`SELECT * FROM role`, (err, results) => {
     if (err) throw err;
-    console.log("Roles:");
+    
     console.table(results);
     homeMenu();
       });
@@ -137,7 +199,7 @@ const viewRoles = () => {
 const viewEmployees = () => {
   db.query(`SELECT * FROM employee`, (err, results) => {
     if (err) throw err;
-    console.log("Employees:");
+    
     console.table(results);
     homeMenu();
   });
@@ -336,43 +398,86 @@ const addEmployee = () => {
   })
 }
 
-const updateEmployeeRole = () => {
-  db.query(`SELECT * FROM employee`, (err, results) => {
-    if (err) throw err;
-    console.log("Employees:");
-    console.table(results);
+// const updateEmployeeRole = () => {
+//   db.query(`SELECT * FROM employee`, (err, results) => {
+//     if (err) throw err;
+//     console.log("Employees:");
+//     console.table(results);
 
 
-    homeMenu();
-  });
-};
+//     homeMenu();
+//   });
+// };
 
 
 // const updateManager = () => {
-//   db.query(`UPDATE`)
-// }
+//   db.query(`SELECT * FROM 'employee', (err, results) => {
+// 
+// }`)
+// // }
 
-// const viewByManager = () => {
-//   db.query(`UPDATE`)
-// }
+// // const viewByManager = () => {
+// //   db.query(`UPDATE`)
+// // }
 
-// const viewByDepartment = () => {
-//   db.query(`UPDATE`)
-// }
+// // const viewByDepartment = () => {
+// //   db.query(`UPDATE`)
+// // }
 
 
-// const deleteDepartment = () => {
-//   db.query(`UPDATE`)
-// }
+const deleteDepartment = () => {
+  inquirer .prompt({
+    type: 'list',
+    name: 'departments',
+    message: 'Select department to be removed',
+    choices: allDpartments
+  }).then((answer) => {
+    Connection.query(`DELETE FROM department WHERE id=${answer.department}`, (err, res) => {
+      if (err) throw err;
+      homeMenu();
+    })
+    console.log(answer)
+  })
+}
 
-// const deleteRoles = () => {
-//   db.query(`UPDATE`)
-// }
+const deleteRole = () => {
+  inquirer .prompt({
+    type: 'list',
+    name: 'roles',
+    message: 'Select role to be removed',
+    choices: allRoless
+  }).then((answer) => {
+    Connection.query(`DELETE FROM role WHERE id=${answer.role}`, (err, res) => {
+      if (err) throw err;
+      homeMenu();
+    })
+    console.log(answer)
+  })
+}
 
-// const deleteEmployee = () => {
-//   db.query(`UPDATE`)
-// }
+const deleteEmployee = () => {
+  inquirer .prompt({
+    type: 'list',
+    name: 'employees',
+    message: 'Select employee to be removed',
+    choices: allEmployees
+  }).then((answer) => {
+    Connection.query(`DELETE FROM employee WHERE id=${answer.employee}`, (err, res) => {
+      if (err) throw err;
+      homeMenu();
+    })
+    console.log(answer)
+  })
+}
 
-function quit() {
-  Connection.end
-};
+// function quit() {
+//   Connection.end
+// };
+
+app.use((req, res) => {
+  res.status(404).end();
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
