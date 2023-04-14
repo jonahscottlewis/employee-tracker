@@ -2,9 +2,9 @@ const express = require('express');
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
 // const db = require('./server');
-const consoleTables = require("console.table");
+// const consoleTables = require("console.table");
 
-var allManagers = [];
+// var allManagers = [];
 var allRoles = [];
 var allEmployees = [];
 
@@ -29,42 +29,44 @@ const db = mysql.createConnection(
 
 db.connect(function () {
   console.log(`Connected to the employee_db.`);
-  homeMenu();
+  
 });
 
-const getAllManagers = () => {
-  db.query(`SELECT manager, manager_id FROM managers`, (err, res) => {
-    if (err) throw err;
-    allManagers = [];
-    for (let i=0; i < res.length; i++) {
-      const manager = res[i].manager;
-      const manager_id = res[i].manager_id;
-      var newManager = {
-        name: manager,
-        value: manager_id
-      }
-      allManagers.push(newManager);
-    }
-    return allManagers;
-  });
-};
 
-const getAllRoles = () => {
-  db.query(`SELECT title, role_id FROM roles`, (err, res) => {
-    if (err) throw err;
-    allRoles = [];
-    for(let i=0; i < res.length; i++) {
-      const role = res[i].role;
-      const role_id = res[i].role_id;
-      var newRole = {
-        name: role,
-        value: role_id
-      }
-      allRoles.push(newRole);
-    }
-    return allRoles;
-  });
-};
+
+// const getAllManagers = () => {
+//   db.query(`SELECT manager, manager_id FROM managers`, (err, res) => {
+//     if (err) throw err;
+//     allManagers = [];
+//     for (let i=0; i < res.length; i++) {
+//       const manager = res[i].manager;
+//       const manager_id = res[i].manager_id;
+//       var newManager = {
+//         name: manager,
+//         value: manager_id
+//       }
+//       allManagers.push(newManager);
+//     }
+//     return allManagers;
+//   });
+// };
+
+// const getAllRoles = () => {
+//   db.query(`SELECT title, role_id FROM roles`, (err, res) => {
+//     if (err) throw err;
+//     allRoles = [];
+//     for(let i=0; i < res.length; i++) {
+//       const role = res[i].role;
+//       const role_id = res[i].role_id;
+//       var newRole = {
+//         name: role,
+//         value: role_id
+//       }
+//       allRoles.push(newRole);
+//     }
+//     return allRoles;
+//   });
+// };
 
 const getAllEmployees = () => {
   db.query(`SELECT first_name, last_name, if FROM employee`, (err, res) => {
@@ -73,25 +75,29 @@ const getAllEmployees = () => {
     for (let i =0; i < res.length; i++) {
       const id = res[i].id;
       const firstName = res[i].first_name;
-      const lastNAme = res[i].last_name;
+      const lastName = res[i].last_name;
       var newEmployee = {
         name: firstName.contact(" ", lastName),
         value: id
       }
-      addEmployee.push(newEmployee);
+      allEmployees.push(newEmployee);
     }
     return allEmployees;
   })
 }
 
+// const join = `SELECT id, employee.first_name, employee.last_name, title, salary, department.role, manager
+// FROM employee
+// JOIN role ON employee.role_id = role.role_id
+// LEFT JOIN managers on employee.manager_id = manager.manager_id`
 
 const homeMenu = () => {
 
-  getAllManagers();
-  getAllRoles();
-  getAllEmployees();
+  // getAllEmployees();
+  // getAllManagers();
+  // getAllRoles();
 
-  return inquirer.prompt([
+ inquirer.prompt([
     {
       name: 'menu',
       type: 'list',
@@ -109,8 +115,8 @@ const homeMenu = () => {
         // 'View employees by department',
         'Delete dapartments',
         'Delete roles',
-        'Delete employees'
-        // 'Exit'
+        'Delete employees',
+         'Exit'
       ]
     }
   ])
@@ -166,11 +172,12 @@ const homeMenu = () => {
 
         case "Delete employees":
           deleteEmployee();
-          break;
+          break;  
 
-        // case "Exit":
-        //   quit();
-        //   break;
+        case "Exit":
+          quit();
+          // break;
+          return
 
       }
     });
@@ -196,12 +203,12 @@ const viewRoles = () => {
       });
 };
 
-const viewEmployees = () => {
+const viewEmployees = (openMenu = true) => {
   db.query(`SELECT * FROM employee`, (err, results) => {
     if (err) throw err;
     
     console.table(results);
-    homeMenu();
+    if (openMenu){homeMenu()}
   });
 };
 
@@ -398,16 +405,35 @@ const addEmployee = () => {
   })
 }
 
-// const updateEmployeeRole = () => {
-//   db.query(`SELECT * FROM employee`, (err, results) => {
-//     if (err) throw err;
-//     console.log("Employees:");
-//     console.table(results);
+const updateEmployeeRole = async () => {
+  viewEmployees(false);
 
+  inquirer
+    .prompt([
+      {
+        name: 'employee',
+        type: 'input',
+        message: 'Add employees ID to update',
+    
+      },
+      {
+        name: 'role',
+        type: 'input',
+        message: 'Specify role ID to add to employee',
+       
+      },
+    ]).then((answer) => {
+      console.log(answer.employee, answer.role);
+      db.query(`UPDATE employee SET role_id = ${answer.role}
+      WHERE id = ${answer.employee};`, (err, res) => {
+        if (err) throw err;
+        homeMenu();
+      
+      })
+    
+    }) 
+  };
 
-//     homeMenu();
-//   });
-// };
 
 
 // const updateManager = () => {
@@ -426,6 +452,8 @@ const addEmployee = () => {
 
 
 const deleteDepartment = () => {
+  getAllManagers();
+getAllRoles();
   inquirer .prompt({
     type: 'list',
     name: 'departments',
@@ -456,6 +484,7 @@ const deleteRole = () => {
 }
 
 const deleteEmployee = () => {
+  getAllEmployees();
   inquirer .prompt({
     type: 'list',
     name: 'employees',
@@ -470,9 +499,9 @@ const deleteEmployee = () => {
   })
 }
 
-// function quit() {
-//   Connection.end
-// };
+function quit() {
+  db.end();
+};
 
 app.use((req, res) => {
   res.status(404).end();
@@ -481,3 +510,5 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+homeMenu();
