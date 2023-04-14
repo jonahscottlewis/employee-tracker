@@ -28,24 +28,6 @@ db.connect(function () {
   
 });
 
-const getAllEmployees = () => {
-  db.query(`SELECT first_name, last_name, if FROM employee`, (err, res) => {
-    if (err) throw err;
-    allEmployees = [];
-    for (let i =0; i < res.length; i++) {
-      const id = res[i].id;
-      const firstName = res[i].first_name;
-      const lastName = res[i].last_name;
-      var newEmployee = {
-        name: firstName.contact(" ", lastName),
-        value: id
-      }
-      allEmployees.push(newEmployee);
-    }
-    return allEmployees;
-  })
-}
-
 const homeMenu = () => {
 
  inquirer.prompt([
@@ -67,7 +49,7 @@ const homeMenu = () => {
         'Delete dapartments',
         'Delete roles',
         'Delete employees',
-         'Exit'
+        'Exit'
       ]
     }
   ])
@@ -134,12 +116,12 @@ const homeMenu = () => {
     });
 };
 
-const viewDepartments = () => {
+const viewDepartments = (openMenu = true) => {
   db.query(`SELECT * FROM department`, (err, results) => {
     if (err) throw err;
    
     console.table(results);
-    homeMenu();
+    if (openMenu){homeMenu()}
 
   });
 };
@@ -356,7 +338,7 @@ const addEmployee = () => {
   })
 }
 
-const updateEmployeeRole = async () => {
+const updateEmployeeRole = () => {
   viewEmployees(false);
 
   inquirer
@@ -364,7 +346,7 @@ const updateEmployeeRole = async () => {
       {
         name: 'employee',
         type: 'input',
-        message: 'Add employees ID to update',
+        message: 'Add employee ID to update',
     
       },
       {
@@ -402,53 +384,52 @@ const updateEmployeeRole = async () => {
 // // }
 
 
-const deleteDepartment = () => {
-  getAllManagers();
-getAllRoles();
-  inquirer .prompt({
-    type: 'list',
-    name: 'departments',
-    message: 'Select department to be removed',
-    choices: allDpartments
-  }).then((answer) => {
-    Connection.query(`DELETE FROM department WHERE id=${answer.department}`, (err, res) => {
-      if (err) throw err;
-      homeMenu();
-    })
-    console.log(answer)
-  })
-}
+// const deleteDepartment = () => {
+//   viewDepartments(false)
 
-const deleteRole = () => {
-  inquirer .prompt({
-    type: 'list',
-    name: 'roles',
-    message: 'Select role to be removed',
-    choices: allRoless
-  }).then((answer) => {
-    Connection.query(`DELETE FROM role WHERE id=${answer.role}`, (err, res) => {
-      if (err) throw err;
-      homeMenu();
-    })
-    console.log(answer)
-  })
-}
+//   inquirer .prompt({
+//     type: 'input',
+//     name: 'departments',
+//     message: 'Specify ID of department to be deleted',
+//   }).then((answer) => {
+//     db.query(`DELETE FROM department WHERE id=${answer.department}`, (err, res) => {
+//       if (err) throw err;
+//       homeMenu();
+//     })
+//     console.log(answer)
+//   })
+// }
 
-const deleteEmployee = () => {
-  getAllEmployees();
-  inquirer .prompt({
-    type: 'list',
-    name: 'employees',
-    message: 'Select employee to be removed',
-    choices: allEmployees
-  }).then((answer) => {
-    Connection.query(`DELETE FROM employee WHERE id=${answer.employee}`, (err, res) => {
-      if (err) throw err;
-      homeMenu();
-    })
-    console.log(answer)
-  })
-}
+// const deleteRole = () => {
+//   inquirer .prompt({
+//     type: 'list',
+//     name: 'roles',
+//     message: 'Select role to be removed',
+//     choices: allRoless
+//   }).then((answer) => {
+//     db.query(`DELETE FROM role WHERE id=${answer.role}`, (err, res) => {
+//       if (err) throw err;
+//       homeMenu();
+//     })
+//     console.log(answer)
+//   })
+// }
+
+// const deleteEmployee = () => {
+//   getAllEmployees();
+//   inquirer .prompt({
+//     type: 'list',
+//     name: 'employees',
+//     message: 'Select employee to be removed',
+//     choices: allEmployees
+//   }).then((answer) => {
+//     Connection.query(`DELETE FROM employee WHERE id=${answer.employee}`, (err, res) => {
+//       if (err) throw err;
+//       homeMenu();
+//     })
+//     console.log(answer)
+//   })
+// }
 
 function quit() {
   db.end();
